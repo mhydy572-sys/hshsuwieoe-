@@ -1,0 +1,112 @@
+--[[
+WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+local sigma = HumanoidRootPart
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "⛓️ - YAT SCRIPT  - ☑️",
+    LoadingTitle = "🌍 - هاذ السكربت من صنع فريق YAT",
+    LoadingSubtitle = "By YAT",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "YAT Hub",
+        FileName = "by YAT TEEM"
+    },
+})
+
+local Tab = Window:CreateTab("معلومات المطورين -⚔️")
+
+local Paragraph = Tab:CreateParagraph({
+    Title = "منور يا" .. game:GetService("Players").LocalPlayer.Name .. ".",
+    Content = "🎓⛓️منور السكربت ياغالي هاذ السكربت من صنع فريق عراقي وهو فريق YAT🎓⛓️"
+})
+
+local Section = Tab:CreateSection("المطورين  - Developers 💀")
+
+local Paragraph = Tab:CreateParagraph({Title = "🇮🇶 المطور (1)", Content = "هاذ المطور هو انا صاحب فريق YAT 🇮🇶"})
+
+local Paragraph = Tab:CreateParagraph({Title = "🇮🇶 المطور (2) ", Content = "هاذ المطور هو المطور ترولكس 🇮🇶"})
+
+local Paragraph = Tab:CreateParagraph({Title = "🇮🇶 المطور (3)", Content = "هاذ المطور هو المطور دريدز 🇮🇶"})
+
+local Paragraph = Tab:CreateParagraph({Title = "🇮🇶 المطور (4) ", Content = "هاذ المطور هو المطور زيوس 🇮🇶"})
+
+local Paragraph = Tab:CreateParagraph({Title = "🇮🇶 المطور (5) ", Content = "هاذ المطور هو المطور عماد 🇮🇶"})
+
+local Section = Tab:CreateSection("معلومة عن السكربت  - Information about the script ⚙️")
+
+local Paragraph = Tab:CreateParagraph({Title = "⛓️📍معلومة بسيطة⛓️📍", Content = "📍هاذ السكربت هو عباره عن سكربت مساعد يساعدك في كل شي بماب البيوت⛓️"})
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+
+local Section = Tab:CreateSection("معلومات السيرفر - Server information 💻")
+
+local Paragraph = Tab:CreateParagraph({
+    Title = "اسم الماب الي تستخدمه 💻",
+    Content = "الماب الي تستخدمه هسا هو ماب  " .. gameName
+})
+
+local serverAge = math.floor(time())
+local formattedTime = string.format("%02d:%02d:%02d", serverAge // 3600, (serverAge % 3600) // 60, serverAge % 60)
+
+local Paragraph = Tab:CreateParagraph({
+    Title = "عمر السيرفر الي داخله ⛓️",
+    Content = "متى بدا تاريخ هاذ السيرفر" .. formattedTime
+})
+
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local success, productInfo = pcall(function()
+    return MarketplaceService:GetProductInfo(game.PlaceId)
+end)
+
+local gameOwner = "Unknown"
+
+if success and productInfo and productInfo.Creator then
+    gameOwner = productInfo.Creator.Name
+end
+
+local Paragraph = Tab:CreateParagraph({
+    Title = "صاحب الماب 💻",
+    Content = "صاحب الماب هو " .. gameOwner
+})
+
+local SkinsTab = Window:CreateTab("السكنات -- 🥋")
+
+local Section = SkinsTab:CreateSection("السكنات الاولاد - Men's Clothes 🚶‍♂️")
+
+local Paragraph = SkinsTab:CreateParagraph({Title = "معلومة عن السكنات🎭", Content = "السكنات هنا للاولاد فقط رح تلاقون قسم تحت للبنات"})
+
+local Button = SkinsTab:CreateButton({
+    Name = "قرون نارية 🎭",
+    Callback = function()
+        local args = {
+            [1] = "AskIfIdAvailable",
+            [2] = "233705354"
+        }
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Clothe1s"):FireServer(unpack(args))
+    end
+})
+
+local Button = SkinsTab:CreateButton({
+    Name = "سكن ايمو 🥋",
+    Callback = function()
+    print("Clicked")local args = {
+    [1] = "CharacterChange",
+    [2] = {
+        [1] = 6481161589
+        [2] = 6690037369
+        [3] = 10323360626
+        [4] = 4503867199
+        [5] = 12014310349
+        [6] = 12557271308
+    },
+    [3] = "Roblox20"
+}
+
+game:GetService("ReplicatedStorage").RE:FindFirstChild("1Avata1rOrigina1l"):FireServer(unpack(args))
+  end
+})
