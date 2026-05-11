@@ -1,0 +1,448 @@
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local LoadingConfig = {
+    Duration = 8,
+    FadeOutTime = 1.2,
+    BarColor = Color3.fromRGB(138, 43, 226),
+    ParticleCount = 80,
+    ParticleSizeMax = 8,
+    ParticleSpeed = 0.003,
+    Version = "V2.0 | Yura Hub"
+}
+
+local AnimationConnections = {}
+local Particles = {}
+
+local function CreateParticleSystem(parent)
+    local particleFrame = Instance.new("Frame", parent)
+    particleFrame.Name = "ParticleFrame"
+    particleFrame.BackgroundTransparency = 1
+    particleFrame.Size = UDim2.new(1, 0, 1, 0)
+    particleFrame.ClipsDescendants = true
+
+    for i = 1, LoadingConfig.ParticleCount do
+        local particle = Instance.new("Frame")
+        particle.Parent = particleFrame
+        particle.BackgroundColor3 = LoadingConfig.BarColor
+        particle.BorderSizePixel = 0
+        local size = math.random(2, LoadingConfig.ParticleSizeMax)
+        particle.Size = UDim2.new(0, size, 0, size)
+        particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
+        particle.Transparency = math.random(4, 8) / 10
+        local corner = Instance.new("UICorner", particle)
+        corner.CornerRadius = UDim.new(1, 0)
+        
+        local particleData = {
+            instance = particle,
+            speed = LoadingConfig.ParticleSpeed * (size / LoadingConfig.ParticleSizeMax),
+            mode = "fall"
+        }
+        table.insert(Particles, particleData)
+
+        local connection = RunService.Heartbeat:Connect(function()
+            if particle.Parent then
+                if particleData.mode == "fall" then
+                    particle.Position = particle.Position + UDim2.new(0, 0, particleData.speed, 0)
+                    if particle.Position.Y.Scale > 1.1 then
+                        particle.Position = UDim2.new(math.random(), 0, -0.1, 0)
+                    end
+                elseif particleData.mode == "rise" then
+                    particle.Position = particle.Position - UDim2.new(0, 0, particleData.speed, 0)
+                    if particle.Position.Y.Scale < -0.1 then
+                        particle.Position = UDim2.new(math.random(), 0, 1.1, 0)
+                    end
+                elseif particleData.mode == "blackhole" then
+                    local center = Vector2.new(0.5, 0.5)
+                    local currentPos = Vector2.new(particle.Position.X.Scale, particle.Position.Y.Scale)
+                    local direction = (center - currentPos).Unit
+                    local speedFactor = 0.005
+                    particle.Position = particle.Position + UDim2.new(direction.X * speedFactor, 0, direction.Y * speedFactor, 0)
+                    
+                    if (center - currentPos).Magnitude < 0.05 then
+                        particle.Position = UDim2.new(math.random(0, 100) / 100, 0, math.random(0,1) == 0 and -0.1 or 1.1, 0)
+                    end
+                end
+            end
+        end)
+        table.insert(AnimationConnections, connection)
+    end
+end
+
+local function CreateLoadingScreen()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "YuraHubLoadingScreen"
+    ScreenGui.Parent = PlayerGui
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.IgnoreGuiInset = true
+
+    local Background = Instance.new("Frame", ScreenGui)
+    Background.Name = "Background"
+    Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Background.BorderSizePixel = 0
+    Background.Size = UDim2.new(1, 0, 1, 0)
+    Background.BackgroundTransparency = 1
+
+    CreateParticleSystem(Background)
+
+    local MainFrame = Instance.new("Frame", Background)
+    MainFrame.Name = "MainFrame"
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+    MainFrame.BackgroundTransparency = 0.1
+    MainFrame.BorderSizePixel = 0
+    MainFrame.ClipsDescendants = true
+
+    local UICorner_MainFrame = Instance.new("UICorner", MainFrame)
+    UICorner_MainFrame.CornerRadius = UDim.new(0, 12)
+
+    local UIStroke_MainFrame = Instance.new("UIStroke", MainFrame)
+    UIStroke_MainFrame.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    UIStroke_MainFrame.Color = Color3.fromRGB(138, 43, 226)
+    UIStroke_MainFrame.Thickness = 1
+    UIStroke_MainFrame.Transparency = 0.3
+
+    local Title = Instance.new("TextLabel", MainFrame)
+    Title.Name = "Title"
+    Title.AnchorPoint = Vector2.new(0.5, 0.5)
+    Title.Position = UDim2.new(0.5, 0, 0.2, 0)
+    Title.Size = UDim2.new(0.9, 0, 0, 40)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBlack
+    Title.Text = "YURA HUB"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 42.000
+    Title.TextXAlignment = Enum.TextXAlignment.Center
+    Title.TextTransparency = 1
+
+    local UIGradient_Title = Instance.new("UIGradient", Title)
+    UIGradient_Title.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(220, 180, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(150, 70, 255))}
+    UIGradient_Title.Rotation = 90
+
+    local LiveInfoLabel = Instance.new("TextLabel", MainFrame)
+    LiveInfoLabel.Name = "LiveInfoLabel"
+    LiveInfoLabel.AnchorPoint = Vector2.new(0.5, 0)
+    LiveInfoLabel.Position = UDim2.new(0.5, 0, 0.35, 0)
+    LiveInfoLabel.Size = UDim2.new(0.9, 0, 0, 20)
+    LiveInfoLabel.BackgroundTransparency = 1
+    LiveInfoLabel.Font = Enum.Font.Gotham
+    LiveInfoLabel.Text = "جاري فحص السيرفر..."
+    LiveInfoLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    LiveInfoLabel.TextSize = 16.000
+    LiveInfoLabel.TextTransparency = 1
+
+    local LoadingFrame = Instance.new("Frame", MainFrame)
+    LoadingFrame.Name = "LoadingFrame"
+    LoadingFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    LoadingFrame.Position = UDim2.new(0.5, 0, 0.55, 0)
+    LoadingFrame.Size = UDim2.new(0.9, 0, 0, 12)
+    LoadingFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    LoadingFrame.BorderSizePixel = 0
+    LoadingFrame.BackgroundTransparency = 1
+
+    local UICorner_LoadingFrame = Instance.new("UICorner", LoadingFrame)
+    UICorner_LoadingFrame.CornerRadius = UDim.new(1, 0)
+
+    local LoadingBar = Instance.new("Frame", LoadingFrame)
+    LoadingBar.Name = "LoadingBar"
+    LoadingBar.BackgroundColor3 = LoadingConfig.BarColor
+    LoadingBar.BorderSizePixel = 0
+    LoadingBar.Size = UDim2.new(0, 0, 1, 0)
+    LoadingBar.ClipsDescendants = true
+
+    local UICorner_LoadingBar = Instance.new("UICorner", LoadingBar)
+    UICorner_LoadingBar.CornerRadius = UDim.new(1, 0)
+
+    local UIGradient_LoadingBar = Instance.new("UIGradient", LoadingBar)
+    UIGradient_LoadingBar.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(180, 100, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(110, 30, 200))}
+
+    local ShineEffect = Instance.new("Frame", LoadingBar)
+    ShineEffect.Name = "ShineEffect"
+    ShineEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ShineEffect.BackgroundTransparency = 0.8
+    ShineEffect.BorderSizePixel = 0
+    ShineEffect.Size = UDim2.new(0.2, 0, 1, 0)
+    ShineEffect.Position = UDim2.new(-0.2, 0, 0, 0)
+    ShineEffect.Rotation = 20
+
+    local Status = Instance.new("TextLabel", MainFrame)
+    Status.Name = "Status"
+    Status.AnchorPoint = Vector2.new(0.5, 0)
+    Status.Position = UDim2.new(0.5, 0, 0.68, 0)
+    Status.Size = UDim2.new(0.9, 0, 0, 20)
+    Status.BackgroundTransparency = 1
+    Status.Font = Enum.Font.Gotham
+    Status.Text = "جاري تحميل السكربت..."
+    Status.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Status.TextSize = 18.000
+    Status.TextTransparency = 1
+
+    local Percentage = Instance.new("TextLabel", MainFrame)
+    Percentage.Name = "Percentage"
+    Percentage.AnchorPoint = Vector2.new(0.5, 0)
+    Percentage.Position = UDim2.new(0.5, 0, 0.8, 0)
+    Percentage.Size = UDim2.new(0.9, 0, 0, 20)
+    Percentage.BackgroundTransparency = 1
+    Percentage.Font = Enum.Font.GothamBold
+    Percentage.Text = "0%"
+    Percentage.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Percentage.TextSize = 16.000
+    Percentage.TextTransparency = 1
+    
+    local VersionLabel = Instance.new("TextLabel", MainFrame)
+    VersionLabel.Name = "VersionLabel"
+    VersionLabel.AnchorPoint = Vector2.new(1, 1)
+    VersionLabel.Position = UDim2.new(0.98, 0, 0.98, 0)
+    VersionLabel.Size = UDim2.new(0.5, 0, 0, 15)
+    VersionLabel.BackgroundTransparency = 1
+    VersionLabel.Font = Enum.Font.Code
+    VersionLabel.Text = LoadingConfig.Version
+    VersionLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
+    VersionLabel.TextSize = 12.000
+    VersionLabel.TextXAlignment = Enum.TextXAlignment.Right
+    VersionLabel.TextTransparency = 1
+
+    local EasterEggButton = Instance.new("TextButton", Background)
+    EasterEggButton.Name = "EasterEggButton"
+    EasterEggButton.AnchorPoint = Vector2.new(0.5, 1)
+    EasterEggButton.Position = UDim2.new(0.5, 60, 1, -20)
+    EasterEggButton.Size = UDim2.new(0, 50, 0, 50)
+    EasterEggButton.Text = "Y"
+    EasterEggButton.Font = Enum.Font.SourceSansBold
+    EasterEggButton.TextSize = 30
+    EasterEggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    EasterEggButton.BackgroundTransparency = 1
+    EasterEggButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    local cornerY = Instance.new("UICorner", EasterEggButton); cornerY.CornerRadius = UDim.new(1,0)
+
+    local AntiGravityButton = Instance.new("TextButton", Background)
+    AntiGravityButton.Name = "AntiGravityButton"
+    AntiGravityButton.AnchorPoint = Vector2.new(0.5, 1)
+    AntiGravityButton.Position = UDim2.new(0.5, 0, 1, -20)
+    AntiGravityButton.Size = UDim2.new(0, 50, 0, 50)
+    AntiGravityButton.Text = "↑"
+    AntiGravityButton.Font = Enum.Font.SourceSansBold
+    AntiGravityButton.TextSize = 30
+    AntiGravityButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    AntiGravityButton.BackgroundTransparency = 1
+    AntiGravityButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    local cornerAG = Instance.new("UICorner", AntiGravityButton); cornerAG.CornerRadius = UDim.new(1,0)
+
+    local BlackHoleButton = Instance.new("TextButton", Background)
+    BlackHoleButton.Name = "BlackHoleButton"
+    BlackHoleButton.AnchorPoint = Vector2.new(0.5, 1)
+    BlackHoleButton.Position = UDim2.new(0.5, -60, 1, -20)
+    BlackHoleButton.Size = UDim2.new(0, 50, 0, 50)
+    BlackHoleButton.Text = "🌀"
+    BlackHoleButton.Font = Enum.Font.SourceSansBold
+    BlackHoleButton.TextSize = 30
+    BlackHoleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BlackHoleButton.BackgroundTransparency = 1
+    BlackHoleButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    local cornerBH = Instance.new("UICorner", BlackHoleButton); cornerBH.CornerRadius = UDim.new(1,0)
+
+    return ScreenGui, LoadingBar, Percentage, Status, MainFrame, ShineEffect, Title, LoadingFrame, LiveInfoLabel, VersionLabel, EasterEggButton, AntiGravityButton, BlackHoleButton
+
+end
+
+local function StartLoadingSequence()
+    local screenGui, progressBar, percentageLabel, statusLabel, mainFrame, shineEffect, title, loadingFrame, liveInfoLabel, versionLabel, easterEggButton, antiGravityButton, blackHoleButton = CreateLoadingScreen()
+    
+    local powerUpSound = Instance.new("Sound", screenGui); powerUpSound.SoundId = "rbxassetid://136923477"; powerUpSound.Volume = 0.4;
+    local successSound = Instance.new("Sound", screenGui); successSound.SoundId = "rbxassetid://102221239"; successSound.Volume = 0.6;
+    local whooshSound = Instance.new("Sound", screenGui); whooshSound.SoundId = "rbxassetid://162334996"; whooshSound.Volume = 0.7;
+    local clickSound = Instance.new("Sound", screenGui); clickSound.SoundId = "rbxassetid://6333835654"; clickSound.Volume = 0.5;
+    local gravitySwitchSound = Instance.new("Sound", screenGui); gravitySwitchSound.SoundId = "rbxassetid://2488314155"; gravitySwitchSound.Volume = 0.6;
+    local blackHoleSound = Instance.new("Sound", screenGui); blackHoleSound.SoundId = "rbxassetid://1843520836"; blackHoleSound.Volume = 0.5;
+
+    local currentParticleMode = "fall"
+    antiGravityButton.MouseButton1Click:Connect(function()
+        gravitySwitchSound:Play()
+        if currentParticleMode == "fall" then
+            currentParticleMode = "rise"
+            antiGravityButton.Text = "↓"
+        else
+            currentParticleMode = "fall"
+            antiGravityButton.Text = "↑"
+        end
+        for _, p_data in ipairs(Particles) do
+            p_data.mode = currentParticleMode
+        end
+    end)
+
+    blackHoleButton.MouseButton1Click:Connect(function()
+        blackHoleSound:Play()
+        if currentParticleMode == "blackhole" then
+            currentParticleMode = "fall"
+            antiGravityButton.Text = "↑"
+        else
+            currentParticleMode = "blackhole"
+        end
+        for _, p_data in ipairs(Particles) do
+            p_data.mode = currentParticleMode
+        end
+    end)
+
+    local rgbMode = 0
+    local rgbConnection = nil
+
+    local function setAllColors(color)
+        mainFrame.UIStroke.Color = color
+        title.UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, color), ColorSequenceKeypoint.new(1, Color3.new(1,1,1))}
+        progressBar.BackgroundColor3 = color
+        progressBar.UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromHSV(color:ToHSV() + 0.1, 1, 1)), ColorSequenceKeypoint.new(1, color)}
+        for _, p in ipairs(Particles) do
+            p.instance.BackgroundColor3 = color
+        end
+        easterEggButton.BackgroundColor3 = color
+        antiGravityButton.BackgroundColor3 = color
+        blackHoleButton.BackgroundColor3 = color
+    end
+
+    local function resetColors()
+        mainFrame.UIStroke.Color = Color3.fromRGB(138, 43, 226)
+        title.UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(220, 180, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(150, 70, 255))}
+        progressBar.BackgroundColor3 = LoadingConfig.BarColor
+        progressBar.UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(180, 100, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(110, 30, 200))}
+        for _, p in ipairs(Particles) do
+            p.instance.BackgroundColor3 = LoadingConfig.BarColor
+        end
+        easterEggButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+        antiGravityButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+        blackHoleButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    end
+
+    easterEggButton.MouseButton1Click:Connect(function()
+        clickSound:Play()
+        rgbMode = (rgbMode + 1) % 5
+        
+        if rgbConnection then rgbConnection:Disconnect(); rgbConnection = nil end
+
+        if rgbMode == 0 then
+            resetColors()
+        elseif rgbMode == 1 then
+            rgbConnection = RunService.Heartbeat:Connect(function() setAllColors(Color3.fromHSV(tick() % 5 / 5, 1, 1)) end)
+        elseif rgbMode == 2 then
+            rgbConnection = RunService.Heartbeat:Connect(function() setAllColors(Color3.fromRGB(138, 43, 226):Lerp(Color3.fromRGB(255, 105, 180), (math.sin(tick() * 4) + 1) / 2)) end)
+        elseif rgbMode == 3 then
+            rgbConnection = RunService.Heartbeat:Connect(function()
+                local colors = {Color3.fromRGB(138, 43, 226), Color3.fromRGB(0, 191, 255), Color3.fromRGB(75, 0, 130)}
+                local segment = math.floor((tick() * 0.5) % #colors) + 1
+                setAllColors(colors[segment]:Lerp(colors[(segment % #colors) + 1], (tick() * 0.5) % 1))
+            end)
+        elseif rgbMode == 4 then
+            local baseColor = Color3.fromRGB(138, 43, 226)
+            local brightColor = Color3.fromRGB(220, 180, 255)
+            rgbConnection = RunService.Heartbeat:Connect(function() setAllColors(baseColor:Lerp(brightColor, (math.sin(tick() * 2) + 1) / 2)) end)
+        end
+        if rgbConnection then table.insert(AnimationConnections, rgbConnection) end
+    end)
+
+    TweenService:Create(screenGui.Background, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
+    powerUpSound:Play()
+
+    local entranceTween = TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {Size = UDim2.new(0, 480, 0, 220)})
+    entranceTween:Play()
+    entranceTween.Completed:Connect(function()
+        mainFrame.ClipsDescendants = false
+        TweenService:Create(title, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        TweenService:Create(liveInfoLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        TweenService:Create(loadingFrame, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(statusLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        TweenService:Create(percentageLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        TweenService:Create(versionLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        TweenService:Create(easterEggButton, TweenInfo.new(0.4), {BackgroundTransparency = 0.8}):Play()
+        TweenService:Create(antiGravityButton, TweenInfo.new(0.4), {BackgroundTransparency = 0.8}):Play()
+        TweenService:Create(blackHoleButton, TweenInfo.new(0.4), {BackgroundTransparency = 0.8}):Play()
+    end)
+
+    local pulseTween = TweenService:Create(mainFrame, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Size = UDim2.new(0, 485, 0, 225)})
+    local shineTween = TweenService:Create(shineEffect, TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {Position = UDim2.new(1, 0, 0, 0)})
+    
+    wait(1)
+    pulseTween:Play()
+    shineTween:Play()
+    table.insert(AnimationConnections, pulseTween)
+    table.insert(AnimationConnections, shineTween)
+
+    local startTime = tick()
+    local lastInfoUpdateTime = 0
+    
+    local updateConnection
+    updateConnection = RunService.Heartbeat:Connect(function()
+        local elapsed = tick() - startTime
+        local progress = math.min(elapsed / LoadingConfig.Duration, 1)
+        local percentage = math.floor(progress * 100)
+        
+        progressBar.Size = UDim2.new(progress, 0, 1, 0)
+        percentageLabel.Text = percentage .. "%"
+        
+        if tick() - lastInfoUpdateTime > 2 then
+            local playerCount = #Players:GetPlayers()
+            local ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+            local ownerName = "N/A"
+            pcall(function() ownerName = Players:GetNameFromUserIdAsync(game.CreatorId) end)
+            
+            local infoToShow = {
+                "عدد اللاعبين: " .. playerCount,
+                "البنق: " .. ping .. "ms",
+                "مالك السيرفر: " .. ownerName
+            }
+            liveInfoLabel.Text = infoToShow[math.random(1, #infoToShow)]
+            lastInfoUpdateTime = tick()
+        end
+        
+        if progress >= 1 then
+            updateConnection:Disconnect()
+            
+            successSound:Play()
+            wait(0.8)
+            
+            for _, connection in pairs(AnimationConnections) do
+                if typeof(connection) == "RBXScriptConnection" then
+                    connection:Disconnect()
+                end
+                if typeof(connection) == "Tween" then
+                    connection:Cancel()
+                end
+            end
+            
+            whooshSound:Play()
+            
+            mainFrame.ClipsDescendants = true
+            TweenService:Create(title, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(liveInfoLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(loadingFrame, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(statusLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(percentageLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(versionLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(easterEggButton, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(antiGravityButton, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(blackHoleButton, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            
+            wait(0.3)
+
+            local exitTween = TweenService:Create(mainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Elastic, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+            local backgroundFade = TweenService:Create(screenGui.Background, TweenInfo.new(LoadingConfig.FadeOutTime), {BackgroundTransparency = 1})
+            
+            exitTween:Play()
+            backgroundFade:Play()
+            
+            exitTween.Completed:Connect(function()
+                screenGui:Destroy()
+            end)
+        end
+    end)
+end
+
+StartLoadingSequence()
+
+wait(LoadingConfig.Duration + LoadingConfig.FadeOutTime)
